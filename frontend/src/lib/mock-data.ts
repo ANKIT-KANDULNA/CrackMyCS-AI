@@ -1,5 +1,13 @@
-// ===== Mock Response Data =====
-const MOCK_RESPONSES = {
+export interface MockResponse {
+    answer: string;
+    topics: string[];
+    resources: { title: string; url: string }[];
+    dsa_concepts: string[];
+}
+
+export type Subject = 'os' | 'dbms' | 'oops' | 'cn' | 'system_design' | 'se';
+
+const MOCK_RESPONSES: Record<Subject, Record<string, MockResponse>> = {
     os: {
         default: {
             answer: `Operating Systems form the backbone of computer science interviews. An OS manages hardware resources and provides services to applications through system calls. Key areas include process management (scheduling, synchronization, deadlocks), memory management (paging, segmentation, virtual memory), file systems, and I/O management.\n\nInterviewers frequently test candidates on process vs thread differences, various CPU scheduling algorithms (FCFS, SJF, Round Robin, Priority), deadlock conditions and prevention strategies, and page replacement algorithms (FIFO, LRU, Optimal). Understanding these concepts deeply, along with their trade-offs, is crucial for cracking OS-related interview rounds.\n\nFor system design interviews, OS concepts like caching (page cache), concurrency (mutex, semaphores), and inter-process communication (pipes, shared memory, message queues) are directly applicable. Make sure to understand not just the theory but also real-world applications.`,
@@ -134,8 +142,7 @@ const MOCK_RESPONSES = {
     }
 };
 
-// ===== Keyword matching for subject detection =====
-const SUBJECT_KEYWORDS = {
+const SUBJECT_KEYWORDS: Record<string, string[]> = {
     os: ['process', 'thread', 'scheduling', 'deadlock', 'memory', 'paging', 'virtual memory', 'semaphore', 'mutex', 'kernel', 'system call', 'cpu', 'fcfs', 'round robin', 'sjf', 'operating system', 'page replacement', 'lru', 'fifo', 'context switch', 'ipc', 'pipe', 'fork'],
     dbms: ['database', 'sql', 'query', 'normalization', 'acid', 'transaction', 'index', 'join', 'key', 'primary', 'foreign', 'bcnf', 'nosql', 'schema', 'table', 'relational', 'mongodb', 'sharding', 'replication', 'er diagram', 'aggregate'],
     oops: ['oop', 'object oriented', 'class', 'inheritance', 'polymorphism', 'encapsulation', 'abstraction', 'interface', 'abstract', 'solid', 'design pattern', 'singleton', 'factory', 'observer', 'pillar', 'overloading', 'overriding', 'composition'],
@@ -144,7 +151,7 @@ const SUBJECT_KEYWORDS = {
     se: ['software engineering', 'sdlc', 'agile', 'waterfall', 'scrum', 'testing', 'unit test', 'tdd', 'ci/cd', 'devops', 'sprint', 'kanban', 'code review', 'version control', 'git', 'deployment', 'dry', 'kiss', 'yagni']
 };
 
-const TOPIC_KEYWORDS = {
+const TOPIC_KEYWORDS: Record<string, Record<string, string[]>> = {
     os: { scheduling: ['scheduling', 'fcfs', 'round robin', 'sjf', 'srtf', 'priority', 'cpu scheduling', 'preemptive'], deadlock: ['deadlock', 'banker', 'coffman', 'circular wait', 'mutual exclusion', 'dining philosopher'] },
     dbms: { acid: ['acid', 'atomicity', 'consistency', 'isolation', 'durability', 'transaction', 'commit', 'rollback'] },
     oops: { pillars: ['pillar', 'four pillar', 'encapsulation', 'abstraction', 'inheritance', 'polymorphism'] },
@@ -152,262 +159,36 @@ const TOPIC_KEYWORDS = {
     system_design: { url: ['url shortener', 'bit.ly', 'tinyurl', 'shorten'] }
 };
 
-function detectSubject(query, selectedSubject) {
-    if (selectedSubject && selectedSubject !== 'all') return selectedSubject;
+function detectSubject(query: string, selectedSubject: string | 'all'): Subject {
+    if (selectedSubject && selectedSubject !== 'all') return selectedSubject as Subject;
     const q = query.toLowerCase();
-    let bestMatch = null;
+    let bestMatch: Subject | null = null;
     let bestScore = 0;
+    
     for (const [subject, keywords] of Object.entries(SUBJECT_KEYWORDS)) {
         const score = keywords.filter(kw => q.includes(kw)).length;
-        if (score > bestScore) { bestScore = score; bestMatch = subject; }
+        if (score > bestScore) { 
+            bestScore = score; 
+            bestMatch = subject as Subject; 
+        }
     }
     return bestMatch || 'os';
 }
 
-function detectTopic(query, subject) {
+function detectTopic(query: string, subject: Subject): string {
     const q = query.toLowerCase();
     const topicMap = TOPIC_KEYWORDS[subject];
     if (!topicMap) return 'default';
+    
     for (const [topic, keywords] of Object.entries(topicMap)) {
         if (keywords.some(kw => q.includes(kw))) return topic;
     }
     return 'default';
 }
 
-function getMockResponse(query, selectedSubject) {
+export function getMockResponse(query: string, selectedSubject: string | 'all'): MockResponse {
     const subject = detectSubject(query, selectedSubject);
     const topic = detectTopic(query, subject);
     const subjectData = MOCK_RESPONSES[subject] || MOCK_RESPONSES.os;
     return subjectData[topic] || subjectData.default;
 }
-
-// ===== DOM Elements =====
-const sidebar = document.getElementById('sidebar');
-const sidebarOverlay = document.getElementById('sidebarOverlay');
-const sidebarClose = document.getElementById('sidebarClose');
-const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-const subjectNav = document.getElementById('subjectNav');
-const quickPrompts = document.getElementById('quickPrompts');
-const chatArea = document.getElementById('chatArea');
-const welcomeScreen = document.getElementById('welcomeScreen');
-const messagesContainer = document.getElementById('messagesContainer');
-const queryInput = document.getElementById('queryInput');
-const sendBtn = document.getElementById('sendBtn');
-const clearChatBtn = document.getElementById('clearChatBtn');
-const currentSubjectLabel = document.getElementById('currentSubjectLabel');
-
-let currentSubject = 'all';
-let isProcessing = false;
-
-// ===== Particles =====
-function createParticles() {
-    const container = document.getElementById('particles');
-    for (let i = 0; i < 20; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        p.style.left = Math.random() * 100 + '%';
-        p.style.top = Math.random() * 100 + '%';
-        p.style.animationDelay = Math.random() * 6 + 's';
-        p.style.animationDuration = (4 + Math.random() * 4) + 's';
-        container.appendChild(p);
-    }
-}
-
-// ===== Sidebar =====
-function openSidebar() {
-    sidebar.classList.add('open');
-    sidebarOverlay.classList.add('visible');
-}
-
-function closeSidebar() {
-    sidebar.classList.remove('open');
-    sidebarOverlay.classList.remove('visible');
-}
-
-mobileMenuBtn.addEventListener('click', openSidebar);
-sidebarClose.addEventListener('click', closeSidebar);
-sidebarOverlay.addEventListener('click', closeSidebar);
-
-// ===== Subject Selection =====
-const subjectLabels = {
-    all: 'All Subjects', os: 'Operating Systems', dbms: 'DBMS',
-    oops: 'OOPs', cn: 'Computer Networks', system_design: 'System Design', se: 'Software Engineering'
-};
-
-subjectNav.addEventListener('click', (e) => {
-    const btn = e.target.closest('.subject-btn');
-    if (!btn) return;
-    document.querySelectorAll('.subject-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentSubject = btn.dataset.subject;
-    currentSubjectLabel.textContent = subjectLabels[currentSubject] || 'All Subjects';
-    closeSidebar();
-});
-
-// ===== Quick Prompts =====
-quickPrompts.addEventListener('click', (e) => {
-    const btn = e.target.closest('.quick-prompt-btn');
-    if (!btn || isProcessing) return;
-    const prompt = btn.dataset.prompt;
-    queryInput.value = prompt;
-    sendBtn.disabled = false;
-    handleSend();
-    closeSidebar();
-});
-
-// ===== Input Handling =====
-queryInput.addEventListener('input', () => {
-    sendBtn.disabled = !queryInput.value.trim();
-    queryInput.style.height = 'auto';
-    queryInput.style.height = Math.min(queryInput.scrollHeight, 120) + 'px';
-});
-
-queryInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        if (!sendBtn.disabled && !isProcessing) handleSend();
-    }
-});
-
-sendBtn.addEventListener('click', () => {
-    if (!isProcessing) handleSend();
-});
-
-// ===== Clear Chat =====
-clearChatBtn.addEventListener('click', () => {
-    messagesContainer.innerHTML = '';
-    welcomeScreen.style.display = 'flex';
-    queryInput.value = '';
-    queryInput.style.height = 'auto';
-    sendBtn.disabled = true;
-});
-
-// ===== Message Rendering =====
-function addUserMessage(text) {
-    welcomeScreen.style.display = 'none';
-    const msgEl = document.createElement('div');
-    msgEl.className = 'message user-message';
-    msgEl.innerHTML = `
-        <div class="message-avatar">U</div>
-        <div class="message-body">
-            <div class="message-text">${escapeHtml(text)}</div>
-        </div>`;
-    messagesContainer.appendChild(msgEl);
-    scrollToBottom();
-}
-
-function addTypingIndicator() {
-    const el = document.createElement('div');
-    el.className = 'message ai-message';
-    el.id = 'typingMsg';
-    el.innerHTML = `
-        <div class="message-avatar">AI</div>
-        <div class="message-body">
-            <div class="message-text typing-indicator">
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-                <div class="typing-dot"></div>
-            </div>
-        </div>`;
-    messagesContainer.appendChild(el);
-    scrollToBottom();
-}
-
-function removeTypingIndicator() {
-    const el = document.getElementById('typingMsg');
-    if (el) el.remove();
-}
-
-function addAIMessage(response) {
-    const msgEl = document.createElement('div');
-    msgEl.className = 'message ai-message';
-
-    const topicTagsHtml = response.topics.map(t => `<span class="topic-tag">${escapeHtml(t)}</span>`).join('');
-    const resourcesHtml = response.resources.map(r => `<li><a href="${escapeHtml(r.url)}" target="_blank" rel="noopener">${escapeHtml(r.title)}</a></li>`).join('');
-    const dsaTagsHtml = response.dsa_concepts.map(d => `<span class="dsa-tag">${escapeHtml(d)}</span>`).join('');
-
-    const answerHtml = response.answer.split('\n').filter(p => p.trim()).map(p => `<p>${formatText(p)}</p>`).join('');
-
-    msgEl.innerHTML = `
-        <div class="message-avatar">AI</div>
-        <div class="message-body">
-            <div class="message-text">${answerHtml}</div>
-            <div class="response-sections">
-                <div class="response-card">
-                    <div class="response-card-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
-                        Related Topics
-                    </div>
-                    <div class="topic-tags">${topicTagsHtml}</div>
-                </div>
-                <div class="response-card">
-                    <div class="response-card-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
-                        Learning Resources
-                    </div>
-                    <ul class="resource-list">${resourcesHtml}</ul>
-                </div>
-                <div class="response-card">
-                    <div class="response-card-header">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
-                        DSA Concepts
-                    </div>
-                    <div class="dsa-tags">${dsaTagsHtml}</div>
-                </div>
-            </div>
-        </div>`;
-    messagesContainer.appendChild(msgEl);
-    scrollToBottom();
-}
-
-// ===== Send Handler =====
-async function handleSend() {
-    const query = queryInput.value.trim();
-    if (!query) return;
-
-    isProcessing = true;
-    sendBtn.disabled = true;
-    queryInput.value = '';
-    queryInput.style.height = 'auto';
-
-    addUserMessage(query);
-    addTypingIndicator();
-
-    // Simulate network delay for realistic feel
-    await sleep(800 + Math.random() * 1200);
-
-    removeTypingIndicator();
-
-    const response = getMockResponse(query, currentSubject);
-    addAIMessage(response);
-
-    isProcessing = false;
-    sendBtn.disabled = true;
-}
-
-// ===== Utilities =====
-function escapeHtml(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
-}
-
-function formatText(text) {
-    // Bold
-    text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Inline code
-    text = text.replace(/`(.*?)`/g, '<code>$1</code>');
-    return text;
-}
-
-function scrollToBottom() {
-    chatArea.scrollTo({ top: chatArea.scrollHeight, behavior: 'smooth' });
-}
-
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-// ===== Initialize =====
-createParticles();
-queryInput.focus();

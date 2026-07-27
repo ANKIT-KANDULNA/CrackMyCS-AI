@@ -23,6 +23,16 @@ interface Message {
   response?: MockResponse;
 }
 
+const BACKEND_SUBJECTS: Record<string, string> = {
+  all: "System Design",
+  os: "OS",
+  dbms: "DBMS",
+  oops: "OOPs",
+  cn: "CN",
+  system_design: "System Design",
+  se: "Software Engineering",
+};
+
 const SUBJECTS = [
   { id: "all", label: "All Subjects", icon: BrainCircuit, desc: "Explore everything" },
   { id: "os", label: "Operating Systems", icon: Settings, desc: "Processes, memory, scheduling" },
@@ -283,7 +293,7 @@ function LandingPage({ onStart }: { onStart: () => void }) {
               </div>
               <h3 className="text-xl font-bold text-slate-900 mb-2">Blazing Fast</h3>
               <p className="text-slate-500 text-sm leading-relaxed">
-                Powered by Groq's ultra-fast LLM inference. Complete, structured answers arrive in seconds, not minutes.
+                Powered by Groq&apos;s ultra-fast LLM inference. Complete, structured answers arrive in seconds, not minutes.
               </p>
             </div>
 
@@ -437,6 +447,12 @@ function ChatInterface({ onBack }: { onBack: () => void }) {
 
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const messageIdRef = useRef(0);
+
+  const createMessageId = () => {
+    messageIdRef.current += 1;
+    return `message-${messageIdRef.current}`;
+  };
 
   useEffect(() => {
     if (chatAreaRef.current) {
@@ -446,25 +462,32 @@ function ChatInterface({ onBack }: { onBack: () => void }) {
 
   const handleSend = async (text: string) => {
     if (!text.trim()) return;
-    const userMsg: Message = { id: Date.now().toString(), type: "user", content: text };
+    const userMsg: Message = { id: createMessageId(), type: "user", content: text };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
     if (inputRef.current) inputRef.current.style.height = "auto";
 
     try {
-      const backendSubject = currentSubject === "all" ? "System Design" : currentSubject;
-      const res = await fetch("http://localhost:8000/api/query", {
+      const localApiUrl =
+        typeof window !== "undefined" && window.location.hostname === "localhost"
+          ? "http://localhost:8000"
+          : "";
+      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || localApiUrl).replace(/\/$/, "");
+
+      if (!apiUrl) throw new Error("API URL is not configured");
+
+      const res = await fetch(`${apiUrl}/api/query`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: text, subject: backendSubject }),
+        body: JSON.stringify({ query: text, subject: BACKEND_SUBJECTS[currentSubject] || "System Design" }),
       });
       if (!res.ok) throw new Error("Failed to fetch");
       const data = await res.json();
-      setMessages((prev) => [...prev, { id: (Date.now() + 1).toString(), type: "ai", content: data.answer, response: data }]);
+      setMessages((prev) => [...prev, { id: createMessageId(), type: "ai", content: data.answer, response: data }]);
     } catch {
       const fallback = getMockResponse(text, currentSubject);
-      setMessages((prev) => [...prev, { id: (Date.now() + 1).toString(), type: "ai", content: fallback.answer, response: fallback }]);
+      setMessages((prev) => [...prev, { id: createMessageId(), type: "ai", content: fallback.answer, response: fallback }]);
     } finally {
       setIsTyping(false);
     }

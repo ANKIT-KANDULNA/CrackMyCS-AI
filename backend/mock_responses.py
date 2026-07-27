@@ -13,7 +13,8 @@ def get_mock_response(query: str, subject: str) -> dict:
                     {"title": "Threads in OS - GeeksforGeeks", "url": "https://www.geeksforgeeks.org/thread-in-operating-system/"},
                     {"title": "Multithreading - JavaTPoint", "url": "https://www.javatpoint.com/os-threads"}
                 ],
-                "dsa_concepts": ["Queues (for thread scheduling)", "Graphs (for deadlock detection)"]
+                "dsa_concepts": ["Queues (for thread scheduling)", "Graphs (for deadlock detection)"],
+                "sources": ["os_multithreading.md"]
             },
             "deadlock": {
                 "answer": "A deadlock is a situation in a multiprogramming environment where a set of processes are blocked because each process is holding a resource and waiting for another resource acquired by some other process. This results in a circular waiting condition where none of the processes can proceed.\n\nDeadlocks can be handled using four main strategies: prevention, avoidance (e.g., Banker's Algorithm), detection and recovery, and ignorance (the Ostrich algorithm, which is used by most modern OS like Windows and Linux).",
@@ -21,7 +22,8 @@ def get_mock_response(query: str, subject: str) -> dict:
                 "resources": [
                     {"title": "Deadlock in OS - GeeksforGeeks", "url": "https://www.geeksforgeeks.org/introduction-of-deadlock-in-operating-system/"}
                 ],
-                "dsa_concepts": ["Graphs (Resource Allocation Graph)", "Arrays", "Matrices"]
+                "dsa_concepts": ["Graphs (Resource Allocation Graph)", "Arrays", "Matrices"],
+                "sources": ["os_deadlocks.md", "concurrency.md"]
             }
         },
         "dbms": {
@@ -31,7 +33,8 @@ def get_mock_response(query: str, subject: str) -> dict:
                 "resources": [
                     {"title": "ACID Properties in DBMS", "url": "https://www.geeksforgeeks.org/acid-properties-in-dbms/"}
                 ],
-                "dsa_concepts": ["B-Trees (for indexing)", "Hash Tables", "Write-Ahead Logging (Queues)"]
+                "dsa_concepts": ["B-Trees (for indexing)", "Hash Tables", "Write-Ahead Logging (Queues)"],
+                "sources": ["dbms_transactions.md"]
             }
         }
     }
@@ -45,7 +48,8 @@ def get_mock_response(query: str, subject: str) -> dict:
             {"title": f"Complete Guide to {subject}", "url": "https://www.geeksforgeeks.org/"},
             {"title": f"{subject} Interview Questions", "url": "https://www.javatpoint.com/"}
         ],
-        "dsa_concepts": ["Arrays", "Linked Lists", "Trees", "Graphs"]
+        "dsa_concepts": ["Arrays", "Linked Lists", "Trees", "Graphs"],
+        "sources": ["mock_knowledge_base.md"]
     }
 
     if subject_lower in responses:

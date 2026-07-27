@@ -3,6 +3,7 @@ export interface MockResponse {
     topics: string[];
     resources: { title: string; url: string }[];
     dsa_concepts: string[];
+    sources?: string[];
 }
 
 export type Subject = 'os' | 'dbms' | 'oops' | 'cn' | 'system_design' | 'se';

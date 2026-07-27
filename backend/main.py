@@ -29,6 +29,7 @@ class QueryResponse(BaseModel):
     topics: list[str]
     resources: list[dict]
     dsa_concepts: list[str]
+    sources: list[str] = []
 
 SUPPORTED_SUBJECTS = [
     "OS", "DBMS", "OOPs", "CN", "System Design", "Software Engineering"

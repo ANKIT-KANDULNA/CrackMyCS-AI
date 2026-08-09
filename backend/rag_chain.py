@@ -12,7 +12,7 @@ from ddgs import DDGS
 load_dotenv()
 
 class ResponseSchema(BaseModel):
-    answer: str = Field(description="Detailed answer to the user's query, in 2-3 paragraphs.")
+    answer: str = Field(description="Detailed answer to the user's query, structured with clear subheadings and concise theory.")
     topics: list[str] = Field(description="4-5 relevant topics related to the query.")
     resources: list[dict] = Field(description="List of 3-4 resources with 'title' and 'url' keys.")
     dsa_concepts: list[str] = Field(description="3-4 related Data Structures and Algorithms concepts.")
@@ -28,12 +28,14 @@ Knowledge Base Context:
 {context}
 
 Instructions:
-1. Provide a concise, highly-focused answer tailored strictly for a technical software engineering interview. Avoid fluff. Focus on what an interviewer wants to hear: core principles, real-world trade-offs, and edge cases. Keep it to 2-3 punchy paragraphs.
-2. List 4-5 relevant technical topics that the student should study next based on this question.
-3. Recommend 3-4 high-quality, real web resources directly related to the user's specific question. You MUST use the actual URLs provided in the Web Search Results section below (if any are relevant). Do not make up URLs.
-4. List 3-4 relevant Data Structures and Algorithms (DSA) concepts that relate to this topic or are commonly used in its implementation.
-5. In the `sources` field, list ONLY the exact source filenames (e.g. 'os.txt', 'dbms.md') from the Knowledge Base Context that were actually helpful in answering the query. If the provided context was irrelevant to the user's question, leave the `sources` array empty.
-6. IMPORTANT: Your entire response MUST be a single, valid JSON object. Do NOT include any markdown formatting (like ```json), and do NOT include any conversational text before or after the JSON.
+1. Provide a concise, highly-focused answer tailored strictly for a technical software engineering interview. Avoid fluff. Focus on what an interviewer wants to hear: core principles, real-world trade-offs, and edge cases.
+2. Structure the answer with clear subheadings such as Overview, Key Concepts, Theory, and Practical Implications. Use short paragraphs or bullet-style sections to make the response easy to scan.
+3. Include a brief theoretical explanation for each major concept that shows why it works and how it relates to system behavior.
+4. List 4-5 relevant technical topics that the student should study next based on this question.
+5. Recommend 3-4 high-quality, real web resources directly related to the user's specific question. You MUST use the actual URLs provided in the Web Search Results section below (if any are relevant). Do not make up URLs.
+6. List 3-4 relevant Data Structures and Algorithms (DSA) concepts that relate to this topic or are commonly used in its implementation.
+7. In the `sources` field, list ONLY the exact source filenames (e.g. 'os.txt', 'dbms.md') from the Knowledge Base Context that were actually helpful in answering the query. If the provided context was irrelevant to the user's question, leave the `sources` array empty.
+8. IMPORTANT: Your entire response MUST be a single, valid JSON object. Do NOT include any markdown formatting (like ```json), and do NOT include any conversational text before or after the JSON.
 
 {format_instructions}
 """

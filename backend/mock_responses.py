@@ -130,3 +130,4 @@ def get_mock_response(query: str, subject: str) -> dict:
                 return resp
                 
     return default_response
+

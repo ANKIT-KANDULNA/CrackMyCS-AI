@@ -347,6 +347,29 @@ export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps)
         return;
       }
 
+      // Detect plain heading lines like "Overview:", "Theory:", "Key Concepts:"
+      const plainHeadingMatch = trimmedLine.match(/^(Overview|Key Concepts|Theory|Practical Impact|Practical Implications|Code Example|Interview Tips|Summary|Example|Examples|Benefits|Drawbacks|Trade-offs):\s*(.*)$/i);
+      if (plainHeadingMatch) {
+        flushList();
+        flushTable();
+        flushSection();
+        const headingText = plainHeadingMatch[1];
+        const restText = plainHeadingMatch[2];
+        formattedContent.push(
+          <h3 key={`heading-${idx}`} className="text-lg font-bold text-blue-900 mt-6 mb-3">
+            {formatInlineText(headingText)}
+          </h3>
+        );
+        if (restText) {
+          formattedContent.push(
+            <p key={`heading-text-${idx}`} className="mb-4 text-slate-700 leading-relaxed">
+              {formatInlineText(restText)}
+            </p>
+          );
+        }
+        return;
+      }
+
       // Detect numbered list items (1. or 1))
       if (/^\d+[\.\)]\s/.test(trimmedLine)) {
         flushSection();

@@ -1,17 +1,43 @@
-# CampusX CS Fundamentals Knowledge Base
+# Knowledge Base — CrackMyCS AI
 
-This directory contains the curated knowledge base documents used by the RAG pipeline.
+This folder contains the curated study material that powers the RAG (Retrieval-Augmented Generation) pipeline.
 
-## Subjects Covered
+## Current Files
 
-- `os/` — Operating Systems
-- `dbms/` — Database Management Systems
-- `oops/` — Object-Oriented Programming
-- `cn/` — Computer Networks
-- `system_design/` — System Design
-- `se/` — Software Engineering
+| File | Subject | Approx. Size |
+|------|---------|-------------|
+| `os.txt` | Operating Systems | ~4.8 MB |
+| `dbms.txt` | Database Management Systems | ~8.5 MB |
+| `oop.txt` | Object-Oriented Programming | ~3.8 MB |
+| `computer-networks.txt` | Computer Networks | ~6.0 MB |
+| `system-design.txt` | System Design | ~2.0 MB |
+| `software-engineering.txt` | Software Engineering | ~1.5 MB |
 
-## Adding Documents
+## How to Add New Documents
 
-Place `.txt`, `.md`, or `.pdf` files in the appropriate subject folder.
-The ingestion script (`backend/ingest.py`) will process and embed them into the vector store.
+1. Place `.txt` or `.md` files directly inside this folder
+2. Run the ingestion script from the `backend/` directory:
+
+```bash
+cd backend
+python ingest.py
+```
+
+This will:
+- Load all `.txt` and `.md` files from this directory
+- Split them into chunks (1000 chars, 200 overlap)
+- Generate embeddings using HuggingFace `all-MiniLM-L6-v2`
+- Save the FAISS vector store to `backend/vectorstore/`
+
+## Tips for Adding Good Content
+
+- **Plain text works best** — PDF-extracted text, markdown notes, or hand-written summaries
+- **Structure clearly** — Use headings and sections so chunks have meaningful context
+- **Avoid noise** — Remove page numbers, headers/footers from PDF extractions
+- **Interview-focused** — Content grounded in interview questions yields better responses
+- **Keep files per subject** — One subject per file makes source citation more accurate
+
+## Re-ingesting After Changes
+
+Any time you add, modify, or remove files in this folder, re-run `python ingest.py` to rebuild the vector store.
+The old vector store in `backend/vectorstore/` will be overwritten.

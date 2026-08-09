@@ -7,22 +7,52 @@
 
 @layer base {
   :root {
+    /* Dark Blue Primary Palette with Accent Colors */
     --bg-primary: #ffffff;
-    --bg-secondary: #f8faff;
-    --bg-tertiary: #f1f5f9;
-    --glass: rgba(255, 255, 255, 0.85);
-    --glass-border: rgba(226, 232, 240, 0.8);
-    --text-primary: #0f172a;
-    --text-secondary: #334155;
-    --text-muted: #64748b;
-    --accent: #4f46e5;
-    --accent-light: #6366f1;
-    --accent-glow: rgba(79, 70, 229, 0.12);
-    --blue: #3b82f6;
-    --blue-glow: rgba(59, 130, 246, 0.12);
-    --gradient: linear-gradient(135deg, #4f46e5, #3b82f6);
-    --gradient-text: linear-gradient(135deg, #4338ca, #2563eb);
+    --bg-secondary: #f0f4f8;
+    --bg-tertiary: #e8eff5;
+    --bg-elevated: #ffffff;
+    --glass: rgba(255, 255, 255, 0.95);
+    --glass-border: rgba(30, 58, 138, 0.15);
+    --text-primary: #0c1929;
+    --text-secondary: #1e3a5f;
+    --text-muted: #4a6fa5;
+    
+    /* Dark Blue Primary Colors */
+    --primary: #1e3a8a;
+    --primary-light: #3b82f6;
+    --primary-dark: #0f172a;
+    --primary-glow: rgba(30, 58, 138, 0.12);
+    
+    /* Accent Colors that complement Dark Blue */
+    --accent: #0ea5e9;
+    --accent-light: #38bdf8;
+    --accent-dark: #0284c7;
+    --accent-glow: rgba(14, 165, 233, 0.15);
+    
+    --teal: #14b8a6;
+    --teal-light: #2dd4bf;
+    --teal-glow: rgba(20, 184, 166, 0.12);
+    
+    --violet: #8b5cf6;
+    --violet-light: #a78bfa;
+    --violet-glow: rgba(139, 92, 246, 0.12);
+    
+    --coral: #f43f5e;
+    --coral-light: #fb7185;
+    --coral-glow: rgba(244, 63, 94, 0.12);
+    
+    /* Gradients */
+    --gradient: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
+    --gradient-text: linear-gradient(135deg, #1e3a8a 0%, #0ea5e9 100%);
+    --gradient-subtle: linear-gradient(135deg, #f0f4f8 0%, #e8eff5 100%);
+    --gradient-dark: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+    
+    /* Status Colors */
     --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    
     --background: var(--bg-primary);
     --foreground: var(--text-primary);
   }
@@ -65,15 +95,15 @@
 /* Dot grid background */
 .bg-grid {
   background-image:
-    radial-gradient(circle, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+    radial-gradient(circle, rgba(148, 163, 184, 0.1) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 
 /* Line grid background */
 .bg-line-grid {
   background-image:
-    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
   background-size: 48px 48px;
 }
 

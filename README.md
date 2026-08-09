@@ -21,7 +21,7 @@
 
 | Layer | Technology |
 |-------|-----------|
-| **Frontend** | HTML5, CSS3, Vanilla JS |
+| **Frontend** | Next.js, React, Tailwind CSS, TypeScript |
 | **Backend** | Python, FastAPI, Uvicorn |
 | **LLM** | Groq API (Llama 3.3 70B Versatile) |
 | **Orchestration** | LangChain |
@@ -35,10 +35,10 @@
 ```
 crack-my-cs-ai/
 │
-├── frontend/                   # Frontend UI (Deploy to Vercel)
-│   ├── index.html              # Main chat interface
-│   ├── styles.css              # Dark glassmorphism theme + animations
-│   ├── app.js                  # Chat logic + mock responses
+├── frontend/                   # Next.js Frontend UI (Deploy to Vercel)
+│   ├── src/                    # Source code (app, components, lib)
+│   ├── package.json            # Node dependencies
+│   ├── next.config.ts          # Next.js config
 │   └── vercel.json             # Vercel deployment config
 │
 ├── backend/                    # Backend API (Deploy to Render/Railway)
@@ -63,7 +63,9 @@ crack-my-cs-ai/
 ### Frontend
 ```bash
 cd frontend
-# Open index.html in browser, or deploy to Vercel
+npm install
+npm run dev
+# Open http://localhost:3000 in your browser
 ```
 
 ### Backend

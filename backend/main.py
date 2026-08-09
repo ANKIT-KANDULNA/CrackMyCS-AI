@@ -11,10 +11,19 @@ load_dotenv()
 
 app = FastAPI(title="CrackMyCS AI Backend")
 
-# CORS middleware for development
+# CORS: In production, set ALLOWED_ORIGINS env var to your Vercel frontend URL
+# e.g. ALLOWED_ORIGINS=https://crackmycs.vercel.app,https://crackmycs.ai
+# Leave unset (or set to "*") for local development to allow all origins.
+_raw_origins = os.getenv("ALLOWED_ORIGINS", "*")
+allowed_origins = (
+    [o.strip() for o in _raw_origins.split(",") if o.strip()]
+    if _raw_origins != "*"
+    else ["*"]
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -26,8 +35,12 @@ class QueryRequest(BaseModel):
 
 class QueryResponse(BaseModel):
     answer: str
+    summary: str
     topics: list[str]
     resources: list[dict]
+    images: list[dict] = []
+    video_links: list[dict] = []
+    interview_questions: list[str] = []
     dsa_concepts: list[str]
     sources: list[str] = []
 

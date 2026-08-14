@@ -1,0 +1,37 @@
+graph LR
+    subgraph "Frontend Components"
+        LP[Landing Page]
+        CI[Chat Interface]
+        Lib[Subject Library]
+    end
+    
+    subgraph "Backend Components"
+        Main[main.py]
+        RAG[rag_chain.py]
+        Mock[mock_responses.py]
+        Ingest[ingest.py]
+    end
+    
+    subgraph "AI Components"
+        Chain[LangChain Chain]
+        FAISS[FAISS Store]
+        Groq[Groq LLM]
+        DDG[DuckDuckGo]
+    end
+    
+    LP --> CI
+    CI --> Lib
+    CI --> Main
+    Main --> RAG
+    Main --> Mock
+    RAG --> Chain
+    RAG --> FAISS
+    RAG --> Groq
+    RAG --> DDG
+    Ingest --> FAISS
+    
+    style CI fill:#e1f5ff
+    style Main fill:#fff4e1
+    style RAG fill:#e8f5e9
+    style Chain fill:#e8f5e9
+    style FAISS fill:#f3e5f5

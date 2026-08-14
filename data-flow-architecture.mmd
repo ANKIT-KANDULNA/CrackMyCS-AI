@@ -1,0 +1,39 @@
+graph TB
+    subgraph "Ingestion Phase"
+        KB[Knowledge Base Files<br/>os.txt, dbms.txt, etc.]
+        Ingest[ingest.py Script]
+        Chunker[Text Splitter<br/>LangChain]
+        Embedder[Embedding Generation<br/>HuggingFace]
+        FAISSBuild[FAISS Index Build]
+    end
+    
+    subgraph "Query Phase"
+        Query[User Query]
+        QueryEmbed[Query Embedding]
+        FAISSSearch[FAISS Search]
+        Context[Retrieved Context]
+        Prompt[Prompt + Context]
+        LLMResp[LLM Response]
+        Enhancement[Web Search Enhancement]
+        Final[Final Response]
+    end
+    
+    KB --> Ingest
+    Ingest --> Chunker
+    Chunker --> Embedder
+    Embedder --> FAISSBuild
+    FAISSBuild --> FAISSSearch
+    
+    Query --> QueryEmbed
+    QueryEmbed --> FAISSSearch
+    FAISSSearch --> Context
+    Context --> Prompt
+    Prompt --> LLMResp
+    LLMResp --> Enhancement
+    Enhancement --> Final
+    
+    style KB fill:#f3e5f5
+    style FAISSBuild fill:#e8f5e9
+    style FAISSSearch fill:#e8f5e9
+    style LLMResp fill:#ffebee
+    style Final fill:#e1f5ff

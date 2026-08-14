@@ -1,0 +1,48 @@
+graph TD
+    subgraph Row1
+        direction LR
+        A[User Query] --> B[Query Embedding<br/>HuggingFace]
+    end
+    
+    subgraph Row2
+        direction RL
+        B --> C[FAISS Vector Search<br/>Knowledge Base]
+        C --> D[Retrieved Context<br/>CS Content Chunks]
+    end
+    
+    subgraph Row3
+        direction LR
+        D --> E[Prompt Construction<br/>Context + Query]
+        E --> F[Groq LLM<br/>Llama 3.3 70B]
+    end
+    
+    subgraph Row4
+        direction RL
+        F --> G[Structured Response<br/>JSON Output]
+        G --> H[Web Search Enhancement<br/>DuckDuckGo]
+    end
+    
+    subgraph Row5
+        direction LR
+        H --> I[Final Response<br/>Answer + Resources + Media]
+    end
+    
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#e8f5e9
+    style D fill:#f3e5f5
+    style E fill:#fff4e1
+    style F fill:#ffebee
+    style G fill:#e8f5e9
+    style H fill:#fff4e1
+    style I fill:#e1f5ff
+    
+    style A fill:#e1f5ff
+    style B fill:#fff4e1
+    style C fill:#e8f5e9
+    style D fill:#f3e5f5
+    style E fill:#fff4e1
+    style F fill:#ffebee
+    style G fill:#e8f5e9
+    style H fill:#fff4e1
+    style I fill:#e1f5ff

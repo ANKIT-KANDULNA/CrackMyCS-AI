@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Backend
+    participant LangChain
+    participant VectorStore
+    participant LLM
+    participant WebSearch
+    
+    User->>Frontend: Enter Question + Select Subject
+    Frontend->>Backend: POST /api/query {query, subject}
+    
+    Backend->>LangChain: Process query
+    
+    LangChain->>VectorStore: Embed query
+    VectorStore->>VectorStore: FAISS similarity search
+    VectorStore-->>LangChain: Retrieved context chunks
+    
+    LangChain->>LLM: Send prompt with context
+    LLM-->>LangChain: Structured JSON response
+    
+    LangChain->>WebSearch: Search for resources
+    WebSearch-->>LangChain: Articles, images, videos
+    
+    LangChain->>LangChain: Combine LLM response + web results
+    LangChain-->>Backend: Final structured response
+    
+    Backend-->>Frontend: JSON response {answer, topics, resources, etc.}
+    Frontend->>User: Display formatted response

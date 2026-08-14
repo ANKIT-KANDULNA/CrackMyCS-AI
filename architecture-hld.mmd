@@ -1,0 +1,68 @@
+graph TB
+    subgraph "Client Layer"
+        UI[Next.js Frontend<br/>React + TypeScript<br/>Tailwind CSS]
+        ChatInterface[Chat Interface<br/>Glassmorphism UI]
+    end
+    
+    subgraph "API Layer"
+        API[FastAPI Backend<br/>Python + Uvicorn]
+        QueryEndpoint[POST /api/query]
+        HealthEndpoint[GET /api/health]
+        SubjectsEndpoint[GET /api/subjects]
+    end
+    
+    subgraph "AI/ML Pipeline Layer"
+        LangChain[LangChain Orchestration]
+        Embeddings[HuggingFace Embeddings<br/>all-MiniLM-L6-v2]
+        VectorStore[FAISS Vector Store<br/>Semantic Search]
+        LLM[Groq API<br/>Llama 3.3 70B]
+        WebSearch[DuckDuckGo Search<br/>ddgs]
+    end
+    
+    subgraph "Data Layer"
+        KnowledgeBase[Knowledge Base<br/>Curated CS Content<br/>~25MB text files]
+        VectorIndex[FAISS Index<br/>Pre-computed embeddings]
+        Environment[Environment Variables<br/>API Keys, Config]
+    end
+    
+    subgraph "External Services"
+        GroqAPI[Groq LLM API]
+        DDGAPI[DuckDuckGo Search API]
+    end
+    
+    subgraph "Deployment Layer"
+        Vercel[Vercel<br/>Frontend Hosting]
+        Render[Render<br/>Backend Hosting]
+    end
+    
+    UI --> ChatInterface
+    ChatInterface -->|HTTP/JSON| QueryEndpoint
+    QueryEndpoint --> API
+    API --> LangChain
+    
+    LangChain --> Embeddings
+    LangChain --> VectorStore
+    LangChain --> LLM
+    LangChain --> WebSearch
+    
+    VectorStore --> VectorIndex
+    VectorIndex --> KnowledgeBase
+    
+    LLM --> GroqAPI
+    WebSearch --> DDGAPI
+    
+    API --> Environment
+    HealthEndpoint --> API
+    SubjectsEndpoint --> API
+    
+    UI --> Vercel
+    API --> Render
+    
+    style UI fill:#e1f5ff
+    style API fill:#fff4e1
+    style LangChain fill:#e8f5e9
+    style KnowledgeBase fill:#f3e5f5
+    style GroqAPI fill:#ffebee
+    style DDGAPI fill:#ffebee
+    style Vercel fill:#e0f2f1
+    style Render fill:#e0f2f1

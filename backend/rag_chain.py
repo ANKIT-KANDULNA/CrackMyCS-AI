@@ -232,25 +232,10 @@ def get_response(query: str, subject: str) -> dict:
         ("human", "{query}")
     ])
 
-    # Load Vector Store (skip if too large for free tier)
-    vectorstore_path = Path(__file__).parent / "vectorstore"
+    # Skip vector store for now to ensure deployment works
+    # TODO: Implement cloud vector database (Pinecone, Weaviate, etc.) for production
     context = ""
-    # Skip vectorstore loading on free tier to avoid memory issues
-    # Uncomment below if using paid tier with more RAM
-    # if vectorstore_path.exists():
-    #     try:
-    #         embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-    #         vectorstore = FAISS.load_local(str(vectorstore_path), embeddings, allow_dangerous_deserialization=True)
-    #         docs = vectorstore.similarity_search(query, k=4)
-    #         context = "\n\n".join([
-    #             f"Source: {os.path.basename(d.metadata.get('source', 'Unknown'))}\n{d.page_content}"
-    #             for d in docs
-    #         ])
-    #     except Exception as e:
-    #         print(f"Warning: Failed to load vector store: {e}. Proceeding without local context.")
-    # else:
-    #     print("Warning: Vector store not found. Proceeding without context.")
-    print("Info: Vector store skipped for free tier. Using web search only.")
+    print("Info: Using web search only for this deployment. Vector store disabled for memory constraints.")
 
     # Live web search — used both as optional context and as the sole resource list
     web_resources = search_web_resources(query, subject, max_results=3)

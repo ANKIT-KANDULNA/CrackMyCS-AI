@@ -52,8 +52,8 @@ def load_documents():
 def split_documents(documents):
     """Split documents into chunks for embedding."""
     splitter = RecursiveCharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=200,
+        chunk_size=1500,  # Increased to reduce total number of chunks
+        chunk_overlap=150,  # Reduced overlap
         length_function=len,
         separators=["\n\n", "\n", ". ", " ", ""],
     )
@@ -64,10 +64,14 @@ def split_documents(documents):
 
 def create_vector_store(chunks):
     """Generate embeddings and store in FAISS vector store."""
+    # Use a smaller model for reduced memory usage
     embeddings = HuggingFaceEmbeddings(
-        model_name="sentence-transformers/all-MiniLM-L6-v2"
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={'device': 'cpu'},  # Force CPU to avoid GPU memory issues
+        encode_kwargs={'normalize_embeddings': True}  # Normalize for better search
     )
 
+    # Use a smaller index type for memory efficiency
     vectorstore = FAISS.from_documents(chunks, embeddings)
 
     # Save locally

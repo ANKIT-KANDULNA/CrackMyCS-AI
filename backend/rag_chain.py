@@ -6,7 +6,8 @@ from langchain_core.output_parsers import JsonOutputParser
 from pydantic import BaseModel, Field
 from pathlib import Path
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import FAISS
+from langchain_pinecone import PineconeVectorStore
+from pinecone import Pinecone, ServerlessSpec
 from urllib.parse import urlparse
 
 try:
@@ -15,6 +16,10 @@ except ImportError:
     from duckduckgo_search import DDGS
 
 load_dotenv()
+
+# Pinecone configuration
+PINECONE_API_KEY = os.getenv("PINECONE_API_KEY")
+PINECONE_INDEX_NAME = "cs-knowledge-base"
 
 # Domains that rarely yield useful CS interview articles
 _BLOCKED_DOMAINS = {
@@ -175,6 +180,45 @@ def search_images(query: str, subject: str, max_results: int = 3) -> list[dict]:
     return images
 
 
+def get_vector_store():
+    """
+    Initialize or retrieve the Pinecone vector store.
+    Returns the vector store instance for retrieval.
+    """
+    if not PINECONE_API_KEY:
+        raise ValueError("PINECONE_API_KEY is not set in environment variables.")
+    
+    pc = Pinecone(api_key=PINECONE_API_KEY)
+    
+    # Check if index exists, if not create it
+    existing_indexes = [index.name for index in pc.list_indexes()]
+    if PINECONE_INDEX_NAME not in existing_indexes:
+        print(f"Creating Pinecone index: {PINECONE_INDEX_NAME}")
+        pc.create_index(
+            name=PINECONE_INDEX_NAME,
+            dimension=384,  # all-MiniLM-L6-v2 dimension
+            metric="cosine",
+            spec=ServerlessSpec(cloud="aws", region="us-east-1")
+        )
+        print(f"Index {PINECONE_INDEX_NAME} created successfully.")
+    
+    # Initialize embeddings
+    embeddings = HuggingFaceEmbeddings(
+        model_name="sentence-transformers/all-MiniLM-L6-v2",
+        model_kwargs={'device': 'cpu'},
+        encode_kwargs={'normalize_embeddings': True}
+    )
+    
+    # Connect to existing index
+    vectorstore = PineconeVectorStore(
+        index_name=PINECONE_INDEX_NAME,
+        embedding=embeddings,
+        pinecone_api_key=PINECONE_API_KEY
+    )
+    
+    return vectorstore
+
+
 def search_videos(query: str, subject: str, max_results: int = 2) -> list[dict]:
     """
     Fetch top video results for the query via DuckDuckGo.
@@ -224,7 +268,13 @@ def get_response(query: str, subject: str) -> dict:
     if not api_key:
         raise ValueError("GROQ_API_KEY is not set.")
 
-    llm = ChatGroq(model="llama-3.3-70b-versatile", api_key=api_key, temperature=0.2)
+    # Groq model for chat. Override via GROQ_MODEL env var if needed.
+    # NOTE: the older "llama-3.3-70b-versatile" was removed from Groq (404 model_not_found),
+    # which silently fell back to mock responses. "openai/gpt-oss-20b" is fast, reliable
+    # and returns valid JSON for the response schema.
+    GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+
+    llm = ChatGroq(model=GROQ_MODEL, api_key=api_key, temperature=0.2)
     parser = JsonOutputParser(pydantic_object=ResponseSchema)
 
     prompt = ChatPromptTemplate.from_messages([
@@ -232,10 +282,22 @@ def get_response(query: str, subject: str) -> dict:
         ("human", "{query}")
     ])
 
-    # Skip vector store for now to ensure deployment works
-    # TODO: Implement cloud vector database (Pinecone, Weaviate, etc.) for production
+    # Use Pinecone cloud vector store for retrieval
     context = ""
-    print("Info: Using web search only for this deployment. Vector store disabled for memory constraints.")
+    try:
+        vectorstore = get_vector_store()
+        retriever = vectorstore.as_retriever(search_kwargs={"k": 3})
+        relevant_docs = retriever.invoke(query)
+        
+        if relevant_docs:
+            kb_context = "\n--- Knowledge Base Context ---\n"
+            for doc in relevant_docs:
+                kb_context += f"{doc.page_content}\n\n"
+            context = kb_context
+            print(f"Retrieved {len(relevant_docs)} relevant documents from Pinecone.")
+    except Exception as e:
+        print(f"Vector store retrieval failed: {e}. Falling back to web search only.")
+        context = ""
 
     # Live web search — used both as optional context and as the sole resource list
     web_resources = search_web_resources(query, subject, max_results=3)

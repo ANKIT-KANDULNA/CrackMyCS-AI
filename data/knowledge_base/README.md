@@ -27,7 +27,7 @@ This will:
 - Load all `.txt` and `.md` files from this directory
 - Split them into chunks (1000 chars, 200 overlap)
 - Generate embeddings using HuggingFace `all-MiniLM-L6-v2`
-- Save the FAISS vector store to `backend/vectorstore/`
+- Upload to the Pinecone cloud vector store
 
 ## Tips for Adding Good Content
 
@@ -39,5 +39,4 @@ This will:
 
 ## Re-ingesting After Changes
 
-Any time you add, modify, or remove files in this folder, re-run `python ingest.py` to rebuild the vector store.
-The old vector store in `backend/vectorstore/` will be overwritten.
+Any time you add, modify, or remove files in this folder, re-run `python ingest.py` to re-embed and upload to Pinecone.

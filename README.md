@@ -6,14 +6,14 @@
 ![Groq](https://img.shields.io/badge/Groq-LLM_API-green)
 ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-teal)
 ![RAG](https://img.shields.io/badge/RAG-Pipeline-purple)
-![FAISS](https://img.shields.io/badge/FAISS-Vector_Store-orange)
+![Pinecone](https://img.shields.io/badge/Pinecone-Vector_Store-orange)
 
 ## 🎯 Features
 
 - **6 Core CS Subjects** — OS, DBMS, OOPs, Computer Networks, System Design, Software Engineering
 - **RAG Pipeline** — Retrieval-Augmented Generation using LangChain + Groq (Llama 3.3 70B)
 - **Curated Knowledge Base** — Grounded in CampusX CS fundamentals content for accurate, structured responses
-- **Vector Store** — FAISS-powered semantic search over embedded knowledge base documents
+- **Vector Store** — Pinecone-powered semantic search over embedded knowledge base documents
 - **Smart Responses** — Returns relevant interview topics, learning resources, and associated DSA concepts
 - **Modern UI** — Glassmorphism design with dark theme, animations, and responsive layout
 
@@ -23,10 +23,10 @@
 |-------|-----------|
 | **Frontend** | Next.js, React, Tailwind CSS, TypeScript |
 | **Backend** | Python, FastAPI, Uvicorn |
-| **LLM** | Groq API (Llama 3.3 70B Versatile) |
+| **LLM** | Groq API (OpenAI GPT-OSS 20B) |
 | **Orchestration** | LangChain |
 | **Embeddings** | HuggingFace (all-MiniLM-L6-v2) |
-| **Vector Store** | FAISS |
+| **Vector Store** | Pinecone (cloud vector DB) |
 | **Architecture** | RAG (Retrieval-Augmented Generation) |
 | **Deployment** | Vercel (Frontend) · Render (Backend) |
 
@@ -45,7 +45,7 @@ crack-my-cs-ai/
 │   ├── main.py                 # FastAPI server with /api/query endpoint
 │   ├── rag_chain.py            # LangChain + Groq RAG pipeline
 │   ├── mock_responses.py       # Fallback mock responses
-│   ├── ingest.py               # Document ingestion → FAISS vector store
+│   ├── ingest.py               # Document ingestion → Pinecone vector store
 │   ├── requirements.txt        # Python dependencies
 │   ├── .env.example            # Environment variable template
 │   └── README.md               # Backend setup instructions
@@ -97,7 +97,7 @@ User Query
                     │   LangChain Pipeline  │
                     │                       │
                     │  1. Embed user query  │
-                    │  2. FAISS retrieval   │
+                    │  2. Pinecone retrieval│
                     │  3. Build prompt with │
                     │     retrieved context │
                     │  4. Groq LLM (Llama)  │
@@ -138,6 +138,18 @@ User Query
 3. Build Command: `pip install -r requirements.txt`
 4. Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
 5. Add `GROQ_API_KEY` environment variable
+6. **Set `DATABASE_URL`** to a persistent PostgreSQL connection string (e.g. from Render Postgres). If omitted, the backend falls back to SQLite on ephemeral disk — **all users and chat history will be lost on every deploy/restart**.
+
+## ❓ Troubleshooting
+
+### OAuth sign-in fails with a generic "Callback" error
+
+The most common cause is an `AUTH_CALLBACK_SECRET` mismatch between the frontend and backend.
+
+- Both `frontend/.env.local` and `backend/.env` must define `AUTH_CALLBACK_SECRET` with the **exact same value**.
+- If the value is missing or different on either side, the backend returns `403 Invalid auth callback secret`, which surfaces as a vague error on the sign-in page.
+- Generate a shared secret once (`openssl rand -base64 32`) and paste it into both `.env` files.
+- Check the Next.js server logs for the message: *"Auth callback secret mismatch"* — this confirms the issue.
 
 ## 📄 License
 

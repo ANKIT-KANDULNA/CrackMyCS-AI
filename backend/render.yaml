@@ -7,3 +7,19 @@ services:
     envVars:
       - key: PORT
         value: 8000
+      - key: GROQ_API_KEY
+        sync: false
+      - key: PINECONE_API_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        sync: false
+      - key: AUTH_CALLBACK_SECRET
+        sync: false
+      - key: ALLOWED_ORIGINS
+        sync: false
+      # WARNING: DATABASE_URL MUST be set to a persistent PostgreSQL connection string
+      # in production (e.g. Render Postgres). If unset, the backend falls back to
+      # local SQLite on ephemeral disk — all users and chat history will be lost
+      # on every deploy or restart.
+      - key: DATABASE_URL
+        sync: false

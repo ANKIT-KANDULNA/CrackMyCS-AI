@@ -54,7 +54,7 @@ mmdc -i architecture-hld.mmd -o architecture-hld.svg
 Shows the complete system architecture with 5 main layers:
 - Client Layer (Next.js Frontend)
 - API Layer (FastAPI Backend)
-- AI/ML Pipeline Layer (LangChain, FAISS, Groq)
+- AI/ML Pipeline Layer (LangChain, Pinecone, Groq)
 - Data Layer (Knowledge Base, Vector Index)
 - Deployment Layer (Vercel, Render)
 

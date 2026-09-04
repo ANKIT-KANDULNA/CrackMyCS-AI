@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useRef, useEffect, type ReactNode } from "react";
+import { useState, useRef, useEffect, useCallback, type ReactNode } from "react";
+import { useSession } from "next-auth/react";
 import { getMockResponse, type MockResponse } from "@/lib/mock-data";
 import {
   BACKEND_SUBJECTS,
@@ -11,7 +12,15 @@ import {
   type ChatSubjectId,
   type SubjectId,
 } from "@/lib/subjects";
+import {
+  postQuery,
+  getChatSessions,
+  getChatSession,
+  deleteChatSession,
+  type ChatSessionSummary,
+} from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { AuthHeader } from "@/components/auth-header";
 import {
   Send,
   Menu,
@@ -32,6 +41,8 @@ import {
   Home,
   Settings,
   ZoomIn,
+  Trash2,
+  History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -55,11 +66,16 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps) {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null);
+  const [activeSessionId, setActiveSessionId] = useState<number | null>(null);
+  const [chatSessions, setChatSessions] = useState<ChatSessionSummary[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isLoadingSession, setIsLoadingSession] = useState(false);
 
   const chatAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -69,6 +85,77 @@ export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps)
     messageIdRef.current += 1;
     return `message-${messageIdRef.current}`;
   };
+
+  const refreshChatSessions = useCallback(async () => {
+    if (!session?.accessToken) {
+      setChatSessions([]);
+      return;
+    }
+
+    try {
+      const sessions = await getChatSessions();
+      setChatSessions(sessions);
+    } catch {
+      setChatSessions([]);
+    }
+  }, [session?.accessToken]);
+
+  const startNewChat = useCallback(() => {
+    setMessages([]);
+    setInput("");
+    setActiveSessionId(null);
+    if (inputRef.current) inputRef.current.style.height = "auto";
+  }, []);
+
+  const loadChatSession = useCallback(async (sessionId: number) => {
+    if (isLoadingSession || isTyping) return;
+
+    setIsLoadingSession(true);
+    try {
+      const chatSession = await getChatSession(sessionId);
+      setActiveSessionId(chatSession.id);
+      setMessages(
+        chatSession.messages.map((message) => ({
+          id: `db-${message.id}`,
+          type: message.role === "user" ? "user" : "ai",
+          content: message.content,
+          response: message.response_data ?? undefined,
+          timestamp: new Date(message.created_at),
+        }))
+      );
+      setIsSidebarOpen(false);
+    } catch {
+      // Keep current view if load fails
+    } finally {
+      setIsLoadingSession(false);
+    }
+  }, [isLoadingSession, isTyping]);
+
+  const handleDeleteSession = useCallback(async (sessionId: number, event: React.MouseEvent) => {
+    event.stopPropagation();
+    if (!confirm("Delete this chat?")) return;
+
+    try {
+      await deleteChatSession(sessionId);
+      setChatSessions((prev) => prev.filter((item) => item.id !== sessionId));
+      if (activeSessionId === sessionId) {
+        startNewChat();
+      }
+    } catch {
+      // Ignore delete failures for now
+    }
+  }, [activeSessionId, startNewChat]);
+
+  useEffect(() => {
+    if (!session?.accessToken) {
+      setChatSessions([]);
+      setActiveSessionId(null);
+      return;
+    }
+
+    setIsLoadingHistory(true);
+    refreshChatSessions().finally(() => setIsLoadingHistory(false));
+  }, [session?.accessToken, refreshChatSessions]);
 
   useEffect(() => {
     if (chatAreaRef.current) {
@@ -110,25 +197,10 @@ export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps)
     if (inputRef.current) inputRef.current.style.height = "auto";
 
     try {
-      const localApiUrl =
-        typeof window !== "undefined" && window.location.hostname === "localhost"
-          ? "http://localhost:8000"
-          : "";
-      const apiUrl = (process.env.NEXT_PUBLIC_API_URL || localApiUrl).replace(/\/$/, "");
-
-      if (!apiUrl) throw new Error("API URL is not configured");
-
-      const res = await fetch(`${apiUrl}/api/query`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: text,
-          subject: BACKEND_SUBJECTS[subjectId] || "System Design",
-        }),
-      });
-      if (!res.ok) throw new Error("Failed to fetch");
-      const data = await res.json();
+      const data = await postQuery(text, BACKEND_SUBJECTS[subjectId] || "System Design", activeSessionId);
       setMessages((prev) => [...prev, { id: createMessageId(), type: "ai", content: data.answer, response: data, timestamp: new Date() }]);
+      if (!activeSessionId) setActiveSessionId(data.session_id);
+      refreshChatSessions();
     } catch {
       const fallback = getMockResponse(text, subjectId);
       setMessages((prev) => [...prev, { id: createMessageId(), type: "ai", content: fallback.answer, response: fallback, timestamp: new Date() }]);
@@ -543,7 +615,7 @@ export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps)
 
         <div className="p-4 border-t border-slate-100">
           <div className="flex gap-1.5 flex-wrap">
-            {["Next.js", "LangChain", "Groq", "FAISS"].map((tech) => (
+            {["Next.js", "LangChain", "Groq", "Pinecone"].map((tech) => (
               <span key={tech} className="text-[0.6rem] font-semibold px-2 py-1 bg-slate-100 text-slate-600 rounded-md">
                 {tech}
               </span>
@@ -597,6 +669,7 @@ export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps)
             >
               <GithubIcon />
             </a>
+            <AuthHeader />
           </div>
         </header>
 
@@ -790,21 +863,23 @@ export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps)
                             </ul>
                           </div>
                         )}
-                        <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
-                          <div className="flex items-center gap-1.5 text-[0.68rem] font-bold text-slate-900 uppercase tracking-wider mb-2">
-                            <BookOpen className="w-3 h-3" /> Related Topics
+                        {msg.response.topics?.length > 0 && (
+                          <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                            <div className="flex items-center gap-1.5 text-[0.68rem] font-bold text-slate-900 uppercase tracking-wider mb-2">
+                              <BookOpen className="w-3 h-3" /> Related Topics
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {msg.response.topics.map((t, i) => (
+                                <span
+                                  key={i}
+                                  className="text-[0.72rem] px-2.5 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-full font-medium"
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {msg.response.topics.map((t, i) => (
-                              <span
-                                key={i}
-                                className="text-[0.72rem] px-2.5 py-1 bg-slate-50 text-slate-700 border border-slate-200 rounded-full font-medium"
-                              >
-                                {t}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                        )}
 
                         {msg.response.resources?.length > 0 && (
                           <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
@@ -828,21 +903,23 @@ export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps)
                           </div>
                         )}
 
-                        <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
-                          <div className="flex items-center gap-1.5 text-[0.68rem] font-bold text-slate-900 uppercase tracking-wider mb-2">
-                            <Code2 className="w-3 h-3" /> DSA Concepts
+                        {msg.response.dsa_concepts?.length > 0 && (
+                          <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                            <div className="flex items-center gap-1.5 text-[0.68rem] font-bold text-slate-900 uppercase tracking-wider mb-2">
+                              <Code2 className="w-3 h-3" /> DSA Concepts
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {msg.response.dsa_concepts.map((d, i) => (
+                                <span
+                                  key={i}
+                                  className="text-[0.72rem] px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full font-medium"
+                                >
+                                  {d}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {msg.response.dsa_concepts.map((d, i) => (
-                              <span
-                                key={i}
-                                className="text-[0.72rem] px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-100 rounded-full font-medium"
-                              >
-                                {d}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
+                        )}
 
                         {msg.response.sources && msg.response.sources.length > 0 && (
                           <div className="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
@@ -922,7 +999,7 @@ export function ChatInterface({ subjectId, locked = false }: ChatInterfaceProps)
               </button>
             </div>
             <p className="text-center text-[0.65rem] text-slate-400 mt-2.5">
-              Powered by <strong className="text-slate-500">LangChain + Groq + FAISS</strong> · 
+              Powered by <strong className="text-slate-500">LangChain + Groq + Pinecone</strong> · 
               <span className="hidden sm:inline">Answers are grounded in your knowledge base · </span>
               <span className="hidden xs:inline">
                 <kbd className="px-1 py-0.5 bg-slate-100 rounded text-[0.6rem] font-mono">Ctrl+K</kbd> New Chat · 

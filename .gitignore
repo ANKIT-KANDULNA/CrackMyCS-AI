@@ -10,6 +10,10 @@ env/
 .env
 .env.local
 
+# Local SQLite databases
+backend/users.db
+*.db
+
 # IDE
 .vscode/
 .idea/
@@ -24,6 +28,10 @@ Thumbs.db
 dist/
 build/
 *.egg-info/
+.next/
 
 # Logs
 *.log
+
+# Local vector store (moved to Pinecone cloud)
+backend/vectorstore/

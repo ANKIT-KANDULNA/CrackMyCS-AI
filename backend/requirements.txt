@@ -8,5 +8,10 @@ langchain-text-splitters
 langchain-huggingface
 python-dotenv
 sentence-transformers
-faiss-cpu
+pinecone
+langchain-pinecone
 ddgs
+python-jose[cryptography]
+bcrypt
+sqlalchemy
+psycopg2-binary

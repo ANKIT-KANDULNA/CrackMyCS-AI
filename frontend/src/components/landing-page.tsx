@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { CHAT_SUBJECTS } from "@/lib/subjects";
+import { AuthHeader } from "@/components/auth-header";
 
 const GithubIcon = () => (
   <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
@@ -44,13 +45,7 @@ export function LandingPage() {
           >
             <GithubIcon /> GitHub
           </a>
-          <Link
-            href="/chat"
-            className="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-blue-900 to-blue-700 text-white text-sm font-semibold rounded-xl hover:from-blue-800 hover:to-blue-600 transition-all duration-200"
-          >
-            Open App
-            <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
+          <AuthHeader />
         </div>
       </nav>
 
@@ -67,7 +62,7 @@ export function LandingPage() {
             className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 border border-blue-200/70 rounded-full text-sm font-medium text-blue-900 mb-8 shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5" />
-            RAG-Powered · LangChain + Groq + FAISS
+            RAG-Powered · LangChain + Groq + Pinecone
           </motion.div>
 
           <motion.h1
@@ -337,7 +332,7 @@ export function LandingPage() {
               {
                 icon: Search,
                 title: "Knowledge Base Search",
-                desc: "FAISS vector search finds the most semantically similar content from your local study files instantly.",
+                desc: "Pinecone vector search finds the most semantically similar content from your knowledge base instantly.",
               },
               {
                 icon: Check,
@@ -409,7 +404,7 @@ export function LandingPage() {
             <span className="font-bold text-slate-900 text-sm">CrackMyCS AI</span>
           </div>
           <p className="text-slate-400 text-xs">
-            Built with Next.js · LangChain · Groq · FAISS · HuggingFace Embeddings
+            Built with Next.js · LangChain · Groq · Pinecone · HuggingFace Embeddings
           </p>
           <a
             href="https://github.com/ANKIT-KANDULNA/CrackMyCS-AI"
